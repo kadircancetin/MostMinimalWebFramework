@@ -69,7 +69,7 @@ class MostMinimalWebFramework:
         return Request(method, headers, url.path, parse_qs(url.query), body)
 
     def build_response(self, r: Response) -> str:
-        body = json.dumps(r.body)
+        body = r.body if isinstance(r.body, str) else json.dumps(r.body)
         return (
             f"HTTP/1.1 {r.status_code}\r\nContent-Type: {r.content_type}; charset=utf-8"
             f"\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n{body}"

@@ -24,7 +24,7 @@ Most Minimal Python Web Framework (in terms of number of line).
 
 3) I use this framework for my custom RSS feed generators. I don't want to build docker images, pypi download workflows, etc. I have a small server with a small disk. So dependency-free framework is good. No need to venv, no need docker.
 
-   Just run ~python file.py~ without worrying about dependencies, virtual envs, or docker image building process.
+   Just run ~python MostMinimalWebFramework.py~ without worrying about dependencies, virtual envs, or docker image building process.
 
 4) Also if you like docker, you can use the official python docker image without building a new image, pushing it somewhere, waiting for build processes etc.
 
@@ -34,7 +34,7 @@ Most Minimal Python Web Framework (in terms of number of line).
          -w /app \
          -p 8080:8080 \
          python:3-alpine \
-         python file.py
+         python MostMinimalWebFramework.py
     #+end_src
 
 * Examples
@@ -190,7 +190,7 @@ Variable path
 
       def request_parser(self, request_str: str) -> Request:
           request_lines = request_str.split("\r\n")
-          method, url, _ = request_lines[0].split(" ")  # first line contains method and url
+          method, url, _ = request_lines[0].split(" ")  # first line has method and url
 
           headers = {}
           for i, line in enumerate(request_lines[1:], 1):
@@ -209,7 +209,7 @@ Variable path
           return Request(method, headers, url.path, parse_qs(url.query), body)
 
       def build_response(self, r: Response) -> str:
-          body = json.dumps(r.body)
+          body = r.body if isinstance(r.body, str) else json.dumps(r.body)
           return (
               f"HTTP/1.1 {r.status_code}\r\nContent-Type: {r.content_type}; charset=utf-8"
               f"\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n{body}"
