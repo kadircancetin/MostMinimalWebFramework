@@ -26,7 +26,7 @@ Most Minimal Python Web Framework (in terms of number of line).
 
    Just run ~python MostMinimalWebFramework.py~ without worrying about dependencies, virtual envs, or docker image building process.
 
-4) Also if you like docker, you can use the official python docker image without building a new image, pushing it somewhere, waiting for build processes etc.
+4) Also if you like docker, you can use the official python docker image without building a new image, without pushing it somewhere or without waiting for build processes etc.
 
     #+begin_src bash
       docker run -it --rm \
