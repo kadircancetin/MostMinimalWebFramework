@@ -2,19 +2,19 @@
 
 Most Minimal Python Web Framework (in terms of number of line).
 
-* Key Idea
+* Key Importance Points Of Implementation
 
-| constraint                   | importance     | note                                                                      |
-|------------------------------+----------------+---------------------------------------------------------------------------|
-| under *100* line of code       | ⚫ (MUST)      | formeted with black                                                       |
-| no thirth party dependencies | ⚫ (MUST)      |                                                                           |
-| readablity                   | 🟢 (IMPORTANT) | anyone should easyly change this code with her needs                      |
-| easy to use                  | 🟢 (IMPORTANT) | should feels like flask                                                   |
-| for personal use             | 🟡 (Meh)       | if it is not important service for you, personal use is okay              |
-| performance                  | 🟡 (Meh)       | not consirned but propably good because of simple implemenation           |
-| standards                    | 🟡 (Meh)       | Not always follows. For instance not use `content-type` header, trys json |
-| featureful                   | ⭕ (NO)        | only the basics                                                           |
-| production                   | 🔴 (NEVER)     |                                                                           |
+|                         | importance     | note                                                                    |
+|-------------------------+----------------+-------------------------------------------------------------------------|
+| under *100* lines of code | ⚫ (MUST)      | formeted with black                                                     |
+| no thirth party         | ⚫ (MUST)      | only build-in python modules                                            |
+| readablity              | 🟢 (IMPORTANT) | anyone should easily change this code with her needs                    |
+| easy to use             | 🟢 (IMPORTANT) | should feels like flask                                                 |
+| for personal use        | 🟡 (Meh)       | if it is not essential service for you, personal use is okay            |
+| performance             | 🟡 (Meh)       | not given importance but probably good because of simple implementation |
+| standards               | 🟡 (Meh)       | not always follows, for instance not use `CONTENT-TYPE` header |
+| featureful              | ⭕ (NO)        | only the basics                                                         |
+| production              | 🔴 (NEVER)     |                                                                         |
 
 * Why?
 
@@ -22,11 +22,11 @@ Most Minimal Python Web Framework (in terms of number of line).
 
 2) For learning.
 
-3) I use this framework for my custom rss feed generations. I don't want to build docker images, pypi download workflows etc. I have small server with small disk. So dependency free framework is good. No need to venv, no need docker.
+3) I use this framework for my custom RSS feed generators. I don't want to build docker images, pypi download workflows, etc. I have a small server with a small disk. So dependency-free framework is good. No need to venv, no need docker.
 
-   Just run ~python file.py~ without worying dependencies, virtual envs or docker image building process.
+   Just run ~python file.py~ without worrying about dependencies, virtual envs, or docker image building process.
 
-4) Also if you like docker, you can use official python docker image without building new image, pushing it somewhere, waiting build processes etc.
+4) Also if you like docker, you can use the official python docker image without building a new image, pushing it somewhere, waiting for build processes etc.
 
     #+begin_src bash
       docker run -it --rm \
@@ -45,7 +45,7 @@ Hello world example:
   app = MostMinimalWebFramework()
 
   @app.route("/hello-world/$")
-  def hellow_world(request):
+  def hello_world(request):
       return Response("Hello World")
 
   app.run("0.0.0.0", 8080)
@@ -135,7 +135,7 @@ Variable path
       return Response(f"posts for {user_id}", status_code=201)
 #+end_src
 
-* Full Code
+* Framework FULL Code:
 
 #+begin_src python
   import json

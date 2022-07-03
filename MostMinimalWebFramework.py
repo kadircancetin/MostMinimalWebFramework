@@ -50,7 +50,7 @@ class MostMinimalWebFramework:
 
     def request_parser(self, request_str: str) -> Request:
         request_lines = request_str.split("\r\n")
-        method, url, _ = request_lines[0].split(" ")  # first line contains method and url
+        method, url, _ = request_lines[0].split(" ")  # first line has method and url
 
         headers = {}
         for i, line in enumerate(request_lines[1:], 1):
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     app = MostMinimalWebFramework()
 
     @app.route("/hello-world/$")
-    def hellow_world(request):
+    def hello_world(request):
         return Response("Hello World")
 
     @app.route("/json-response/$")
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         try:
             name = request.body["name"]
         except (KeyError, TypeError):
-            raise ApiException({"msg": "name field required"},status_code=400)
+            raise ApiException({"msg": "name field required"}, status_code=400)
 
         return JSONResponse({"request__name": name})
 
