@@ -44,7 +44,7 @@ Hello world example:
 #+begin_src python
   app = MostMinimalWebFramework()
 
-  @app.route("/hello-world/")
+  @app.route("/")
   def f(request):
       return Response("Hello World")
 
@@ -54,7 +54,7 @@ Hello world example:
 Json Response:
 
 #+begin_src python
-  @app.route("/json-response/$")
+  @app.route("/json-response/")
   def json_response(request):
       return JSONResponse({"msg": "Hello World"})
 #+end_src
@@ -62,7 +62,7 @@ Json Response:
 Method handling:
 
 #+begin_src python
-  @app.route("/method-handling/$")
+  @app.route("/method-handling/")
   def method_handling(request):
       if request.method == "GET":
           return Response("Your method is GET")
@@ -74,7 +74,7 @@ Method handling:
 Different status code:
 
 #+begin_src python
-  @app.route("/status-code/$")
+  @app.route("/status-code/")
   def status_code(request):
       return Response("Different status code", status_code=202)
 #+end_src
@@ -82,7 +82,7 @@ Different status code:
 Exception raising:
 
 #+begin_src python
-  @app.route("/raise-exception/$")
+  @app.route("/raise-exception/")
   def exception_raising(request):
       raise ApiException({"msg": "custom_exception"}, status_code=400)
 #+end_src
@@ -90,7 +90,7 @@ Exception raising:
 Request body handling:
 
 #+begin_src python
-  @app.route("/body-handle/$")
+  @app.route("/body-handle/")
   def body_handling(request):
       try:
           name = request.body["name"]
@@ -103,7 +103,7 @@ Request body handling:
 Query param handling:
 
 #+begin_src python
-  @app.route("/query-param-handling/$")
+  @app.route("/query-param-handling/")
   def query_param_handling(request):
       try:
           q_parameter = request.query_params["q"][0]
@@ -116,7 +116,7 @@ Query param handling:
 Header handling:
 
 #+begin_src python
-  @app.route("/header-handling/$")
+  @app.route("/header-handling/")
   def header_handling(request):
       try:
           token = request.headers["X-TOKEN"]
@@ -180,7 +180,7 @@ Variable path
               def __inner():
                   return func()
 
-              self.route_table.append((re.compile(path), func))
+              self.route_table.append((re.compile(path + "$"), func))
               return __inner
 
           return decorator

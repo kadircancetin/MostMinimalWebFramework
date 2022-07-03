@@ -40,7 +40,7 @@ class MostMinimalWebFramework:
             def __inner():
                 return func()
 
-            self.route_table.append((re.compile(path), func))
+            self.route_table.append((re.compile(path + "$"), func))
             return __inner
 
         return decorator
@@ -103,15 +103,15 @@ if __name__ == "__main__":
 
     app = MostMinimalWebFramework()
 
-    @app.route("/hello-world/")
+    @app.route("/")
     def f(request):
         return Response("Hello World")
 
-    @app.route("/json-response/$")
+    @app.route("/json-response/")
     def json_response(request):
         return JSONResponse({"msg": "Hello World"})
 
-    @app.route("/method-handling/$")
+    @app.route("/method-handling/")
     def method_handling(request):
         if request.method == "GET":
             return Response("Your method is GET")
@@ -119,15 +119,15 @@ if __name__ == "__main__":
         elif request.method == "POST":
             return Response("Your method is POST")
 
-    @app.route("/status-code/$")
+    @app.route("/status-code/")
     def status_code(request):
         return Response("Different status code", status_code=202)
 
-    @app.route("/raise-exception/$")
+    @app.route("/raise-exception/")
     def exception_raising(request):
         raise ApiException({"msg": "custom_exception"}, status_code=400)
 
-    @app.route("/body-handle/$")
+    @app.route("/body-handle/")
     def body_handling(request):
         try:
             name = request.body["name"]
@@ -136,7 +136,7 @@ if __name__ == "__main__":
 
         return JSONResponse({"request__name": name})
 
-    @app.route("/query-param-handling/$")
+    @app.route("/query-param-handling/")
     def query_param_handling(request):
         try:
             q_parameter = request.query_params["q"][0]
@@ -145,7 +145,7 @@ if __name__ == "__main__":
 
         return JSONResponse({"your_q_parameter": q_parameter})
 
-    @app.route("/header-handling/$")
+    @app.route("/header-handling/")
     def header_handling(request):
         try:
             token = request.headers["X-TOKEN"]
@@ -159,7 +159,7 @@ if __name__ == "__main__":
         user_id = request.path[len("/user/") : -len("/posts")]
         return Response(f"posts for {user_id}", status_code=201)
 
-    @app.route("/*")
+    @app.route("/.*")
     def func_404(request):
         return Response("404", status_code=404)
 
