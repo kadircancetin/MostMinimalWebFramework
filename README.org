@@ -44,8 +44,8 @@ Hello world example:
 #+begin_src python
   app = MostMinimalWebFramework()
 
-  @app.route("/hello-world/$")
-  def hello_world(request):
+  @app.route("/hello-world/")
+  def f(request):
       return Response("Hello World")
 
   app.run("0.0.0.0", 8080)
@@ -63,7 +63,7 @@ Method handling:
 
 #+begin_src python
   @app.route("/method-handling/$")
-  def method_handling(request: Request):
+  def method_handling(request):
       if request.method == "GET":
           return Response("Your method is GET")
 
@@ -75,7 +75,7 @@ Different status code:
 
 #+begin_src python
   @app.route("/status-code/$")
-  def status_code(request: Request):
+  def status_code(request):
       return Response("Different status code", status_code=202)
 #+end_src
 
@@ -83,7 +83,7 @@ Exception raising:
 
 #+begin_src python
   @app.route("/raise-exception/$")
-  def exception_raising(request: Request):
+  def exception_raising(request):
       raise ApiException({"msg": "custom_exception"}, status_code=400)
 #+end_src
 
@@ -91,7 +91,7 @@ Request body handling:
 
 #+begin_src python
   @app.route("/body-handle/$")
-  def body_handling(request: Request):
+  def body_handling(request):
       try:
           name = request.body["name"]
       except (KeyError, TypeError):
@@ -104,7 +104,7 @@ Query param handling:
 
 #+begin_src python
   @app.route("/query-param-handling/$")
-  def query_param_handling(request: Request):
+  def query_param_handling(request):
       try:
           q_parameter = request.query_params["q"][0]
       except (KeyError, TypeError):
@@ -117,7 +117,7 @@ Header handling:
 
 #+begin_src python
   @app.route("/header-handling/$")
-  def header_handling(request: Request):
+  def header_handling(request):
       try:
           token = request.headers["X-TOKEN"]
       except (KeyError, TypeError):
@@ -130,7 +130,7 @@ Variable path
 
 #+begin_src python
   @app.route("/user/[^/]*/posts")
-  def varialbe_path(request: Request):
+  def varialbe_path(request):
       user_id = request.path[len("/user/") : -len("/posts")]
       return Response(f"posts for {user_id}", status_code=201)
 #+end_src
