@@ -79,7 +79,7 @@ class MostMinimalWebFramework:
         serversocket = socket(AF_INET, SOCK_STREAM)
         serversocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
         try:
-            serversocket.bind(("0.0.0.0", port))
+            serversocket.bind((address, port))
             serversocket.listen(5)
             while True:
                 clientsocket, _ = serversocket.accept()
@@ -163,4 +163,4 @@ if __name__ == "__main__":
     def func_404(request):
         return Response("404", status_code=404)
 
-    app.run("0.0.0.0", 8080)
+    app.run("0.0.0.0", 3000)
