@@ -163,4 +163,4 @@ if __name__ == "__main__":
     def func_404(request):
         return Response("404", status_code=404)
 
-    app.run("0.0.0.0", 3000)
+    app.run("0.0.0.0", 8080)
