@@ -1,8 +1,9 @@
 import json
 import re
 import traceback
+import asyncio
+import socket
 from dataclasses import dataclass, field
-from socket import AF_INET, SHUT_WR, SO_REUSEADDR, SOCK_STREAM, SOL_SOCKET, socket
 from typing import Any, Callable, Dict, List, Tuple
 from urllib.parse import parse_qs, urlparse
 
@@ -23,13 +24,13 @@ class Response:
     content_type: str = "text/html"
 
 
-class JSONResponse:
-    def __new__(cls, *args, **kwargs):
-        return Response(content_type="application/json", *args, **kwargs)
+def jsonify(*args, **kwargs):
+    return Response(content_type="application/json", *args, **kwargs)
 
 
+@dataclass
 class ApiException(Response, BaseException):
-    pass
+    content_type: str = "application/json"
 
 
 class MostMinimalWebFramework:
@@ -37,12 +38,8 @@ class MostMinimalWebFramework:
 
     def route(self, path: str) -> Callable:
         def decorator(func: Callable):
-            def __inner():
-                return func()
-
             self.route_table.append((re.compile(path + "$"), func))
-            return __inner
-
+            return func
         return decorator
 
     def get_route_function(self, searched_path: str) -> Callable:
@@ -74,33 +71,34 @@ class MostMinimalWebFramework:
             f"HTTP/1.1 {r.status_code}\r\nContent-Type: {r.content_type}; charset=utf-8"
             f"\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n{body}"
         )
-
-    def run(self, address: str, port: int):
-        serversocket = socket(AF_INET, SOCK_STREAM)
-        serversocket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    
+    async def handle_request(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        request = (await reader.read(4096)).decode()
         try:
-            serversocket.bind((address, port))
-            serversocket.listen(5)
-            while True:
-                clientsocket, _ = serversocket.accept()
-                request = clientsocket.recv(4096).decode()
-                try:
-                    parsed_req = self.request_parser(request)
-                    response = self.get_route_function(parsed_req.path)(parsed_req)
-                except ApiException as e:
-                    response = e
-                except Exception:
-                    print(traceback.format_exc())
-                    response = Response({"msg": "500 - server error"}, 500)
-                print(response.status_code, parsed_req.method, parsed_req.path)
-                clientsocket.sendall(self.build_response(response).encode())
-                clientsocket.shutdown(SHUT_WR)
-        finally:
-            serversocket.close()
+            parsed_req = self.request_parser(request)
+            handler = self.get_route_function(parsed_req.path)
+            if asyncio.iscoroutinefunction(handler):
+                response = await handler(parsed_req)
+            else:
+                response = handler(parsed_req)
+        except ApiException as e:
+            response = e
+        except Exception:
+            print(traceback.format_exc())
+            response = Response({"msg": "500 - server error"}, 500)
+        print(response.status_code, parsed_req.method, parsed_req.path)
+        writer.write(self.build_response(response).encode())
+        await writer.drain()
+        writer.close()
+        
+
+    async def run(self, address: str, port: int):
+        server = await asyncio.start_server(self.handle_request, address, port)
+        async with server:
+            await server.serve_forever()
 
 
 if __name__ == "__main__":
-
     app = MostMinimalWebFramework()
 
     @app.route("/")
@@ -109,7 +107,7 @@ if __name__ == "__main__":
 
     @app.route("/json-response/")
     def json_response(request):
-        return JSONResponse({"msg": "Hello World"})
+        return jsonify({"msg": "Hello World"})
 
     @app.route("/method-handling/")
     def method_handling(request):
@@ -134,7 +132,7 @@ if __name__ == "__main__":
         except (KeyError, TypeError):
             raise ApiException({"msg": "name field required"}, status_code=400)
 
-        return JSONResponse({"request__name": name})
+        return jsonify({"request__name": name})
 
     @app.route("/query-param-handling/")
     def query_param_handling(request):
@@ -143,7 +141,7 @@ if __name__ == "__main__":
         except (KeyError, TypeError):
             raise ApiException({"msg": "q query paramter required"}, status_code=400)
 
-        return JSONResponse({"your_q_parameter": q_parameter})
+        return jsonify({"your_q_parameter": q_parameter})
 
     @app.route("/header-handling/")
     def header_handling(request):
@@ -163,4 +161,4 @@ if __name__ == "__main__":
     def func_404(request):
         return Response("404", status_code=404)
 
-    app.run("0.0.0.0", 8080)
+    asyncio.run(app.run("127.0.0.1", 8080))
