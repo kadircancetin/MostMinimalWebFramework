@@ -24,7 +24,7 @@ Most Minimal Python Web Framework (in terms of number of line).
 
 3) I use this framework for my custom RSS feed generators. I don't want to build docker images, pypi download workflows, etc. I have a small server with a small disk. So dependency-free framework is good. No need to venv, no need docker.
 
-   Just run ~python MostMinimalWebFramework.py~ without worrying about dependencies, virtual envs, or docker image building process.
+   Just run ~python examples.py~ without worrying about dependencies, virtual envs, or docker image building process.
 
 4) Also if you like docker, you can use the official python docker image without building a new image, without pushing it somewhere or without waiting for build processes etc.
 
@@ -34,7 +34,7 @@ Most Minimal Python Web Framework (in terms of number of line).
          -w /app \
          -p 8080:8080 \
          python:3-alpine \
-         python MostMinimalWebFramework.py
+         python examples.py
     #+end_src
 
 * Examples
