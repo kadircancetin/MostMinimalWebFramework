@@ -1,8 +1,7 @@
 import json
 import re
 import traceback
-import asyncio
-import socket
+from asyncio import start_server, run, StreamWriter, StreamReader, iscoroutinefunction
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Tuple
 from urllib.parse import parse_qs, urlparse
@@ -24,8 +23,9 @@ class Response:
     content_type: str = "text/html"
 
 
-def jsonify(*args, **kwargs):
-    return Response(content_type="application/json", *args, **kwargs)
+class JSONResponse(Response):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, content_type="application/json", **kwargs)
 
 
 @dataclass
@@ -51,8 +51,7 @@ class MostMinimalWebFramework:
 
         headers = {}
         for i, line in enumerate(request_lines[1:], 1):
-
-            if line == "":  # under empty line, whole data is body
+            if not line:  # under empty line, whole data is body
                 try:
                     body = json.loads("".join(request_lines[i + 1 :]))
                 except json.JSONDecodeError:
@@ -71,29 +70,25 @@ class MostMinimalWebFramework:
             f"HTTP/1.1 {r.status_code}\r\nContent-Type: {r.content_type}; charset=utf-8"
             f"\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n{body}"
         )
-    
-    async def handle_request(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
-        request = (await reader.read(4096)).decode()
+
+    async def handle_request(self, reader: StreamReader, writer: StreamWriter):
+        request = (await reader.read(4096)).decode()  # reading request
         try:
-            parsed_req = self.request_parser(request)
-            handler = self.get_route_function(parsed_req.path)
-            if asyncio.iscoroutinefunction(handler):
-                response = await handler(parsed_req)
-            else:
-                response = handler(parsed_req)
+            parsed_req = self.request_parser(request)  # parsing request
+            handler = self.get_route_function(parsed_req.path)  # getting handler
+            response = await handler(parsed_req) if iscoroutinefunction(handler) else handler(parsed_req)  # handling request
         except ApiException as e:
             response = e
         except Exception:
             print(traceback.format_exc())
             response = Response({"msg": "500 - server error"}, 500)
         print(response.status_code, parsed_req.method, parsed_req.path)
-        writer.write(self.build_response(response).encode())
+        writer.write(self.build_response(response).encode())  # sending response
         await writer.drain()
-        writer.close()
-        
+        writer.close()  # closing connection
 
     async def run(self, address: str, port: int):
-        server = await asyncio.start_server(self.handle_request, address, port)
+        server = await start_server(self.handle_request, address, port)
         async with server:
             await server.serve_forever()
 
@@ -107,7 +102,7 @@ if __name__ == "__main__":
 
     @app.route("/json-response/")
     def json_response(request):
-        return jsonify({"msg": "Hello World"})
+        return JSONResponse({"msg": "Hello World"})
 
     @app.route("/method-handling/")
     def method_handling(request):
@@ -132,7 +127,7 @@ if __name__ == "__main__":
         except (KeyError, TypeError):
             raise ApiException({"msg": "name field required"}, status_code=400)
 
-        return jsonify({"request__name": name})
+        return JSONResponse({"request__name": name})
 
     @app.route("/query-param-handling/")
     def query_param_handling(request):
@@ -141,7 +136,7 @@ if __name__ == "__main__":
         except (KeyError, TypeError):
             raise ApiException({"msg": "q query paramter required"}, status_code=400)
 
-        return jsonify({"your_q_parameter": q_parameter})
+        return JSONResponse({"your_q_parameter": q_parameter})
 
     @app.route("/header-handling/")
     def header_handling(request):
@@ -161,4 +156,4 @@ if __name__ == "__main__":
     def func_404(request):
         return Response("404", status_code=404)
 
-    asyncio.run(app.run("127.0.0.1", 8080))
+    run(app.run("127.0.0.1", 8080))
