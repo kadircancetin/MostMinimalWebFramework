@@ -6,8 +6,8 @@ Most Minimal Python Web Framework (in terms of number of line).
 
 |                         | importance     | note                                                                    |
 |-------------------------+----------------+-------------------------------------------------------------------------|
-| under *100* lines of code | ⚫ (MUST)      | formeted with black                                                     |
-| no thirth party         | ⚫ (MUST)      | only build-in python modules                                            |
+| under *100* lines of code | ⚫ (MUST)      | formatted with black                                                     |
+| no thirth party         | ⚫ (MUST)      | only built-in python modules                                            |
 | readablity              | 🟢 (IMPORTANT) | anyone should easily change this code with her needs                    |
 | easy to use             | 🟢 (IMPORTANT) | should feels like flask                                                 |
 | for personal use        | 🟡 (Meh)       | if it is not essential service for you, personal use is okay            |
