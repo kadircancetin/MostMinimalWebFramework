@@ -1,7 +1,7 @@
 import json
 import re
 import traceback
-from asyncio import start_server, run, StreamWriter, StreamReader, iscoroutinefunction
+import asyncio
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Tuple
 from urllib.parse import parse_qs, urlparse
@@ -24,11 +24,10 @@ class Response:
 
 
 class JSONResponse(Response):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, content_type="application/json", **kwargs)
+    def __new__(self, *args, **kwargs):
+        super().__new__(*args, content_type="application/json", **kwargs)
 
 
-@dataclass
 class ApiException(Response, BaseException):
     content_type: str = "application/json"
 
@@ -53,13 +52,13 @@ class MostMinimalWebFramework:
         for i, line in enumerate(request_lines[1:], 1):
             if not line:  # under empty line, whole data is body
                 try:
-                    body = json.loads("".join(request_lines[i + 1 :]))
+                    body = json.loads("".join(request_lines[i + 1:]))
                 except json.JSONDecodeError:
-                    body = "".join(request_lines[i + 1 :])
+                    body = "".join(request_lines[i + 1:])
                 break
 
             j = line.find(":")  # left part of : will key, right part will be value
-            headers[line[:j].upper()] = line[j + 2 :]
+            headers[line[:j].upper()] = line[j + 2:]
 
         url = urlparse(url)
         return Request(method, headers, url.path, parse_qs(url.query), body)
@@ -68,15 +67,15 @@ class MostMinimalWebFramework:
         body = r.body if isinstance(r.body, str) else json.dumps(r.body)
         return (
             f"HTTP/1.1 {r.status_code}\r\nContent-Type: {r.content_type}; charset=utf-8"
-            f"\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n{body}"
+            f"\r\nContent-Length: {len(body.encode('utf-8'))}\r\nConnection: close\r\n\r\n{body}"
         )
 
-    async def handle_request(self, reader: StreamReader, writer: StreamWriter):
-        request = (await reader.read(4096)).decode()  # reading request
+    async def handle_request(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+        request = (await reader.read(40960)).decode()  # reading request
         try:
             parsed_req = self.request_parser(request)  # parsing request
             handler = self.get_route_function(parsed_req.path)  # getting handler
-            response = await handler(parsed_req) if iscoroutinefunction(handler) else handler(parsed_req)  # handling request
+            response = await handler(parsed_req) if asyncio.iscoroutinefunction(handler) else handler(parsed_req)
         except ApiException as e:
             response = e
         except Exception:
@@ -87,10 +86,14 @@ class MostMinimalWebFramework:
         await writer.drain()
         writer.close()  # closing connection
 
-    async def run(self, address: str, port: int):
-        server = await start_server(self.handle_request, address, port)
+    async def _run(self, address: str, port: int):
+        server = await asyncio.start_server(self.handle_request, address, port)
+        print("Server started at: ", address, ":", port, sep="")
         async with server:
             await server.serve_forever()
+
+    def run(self, address: str, port: int):
+        asyncio.run(self._run(address, port))
 
 
 if __name__ == "__main__":
@@ -149,11 +152,11 @@ if __name__ == "__main__":
 
     @app.route("/user/[^/]*/posts")
     def varialbe_path(request):
-        user_id = request.path[len("/user/") : -len("/posts")]
+        user_id = request.path[len("/user/"): -len("/posts")]
         return Response(f"posts for {user_id}", status_code=201)
 
     @app.route("/.*")
     def func_404(request):
         return Response("404", status_code=404)
 
-    run(app.run("127.0.0.1", 8080))
+    app.run(address="0.0.0.0", port=3000)
